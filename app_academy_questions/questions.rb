@@ -46,6 +46,10 @@ class Question
     questions 
   end
 
+  def self.most_followed(n)
+    QuestionFollow.most_followed_questions(n)
+  end
+
   def initialize(options)
     @id = options['id']
     @title = options['title']
@@ -60,6 +64,11 @@ class Question
   def replies
     Reply.find_by_question_id(self.id)    
   end
+
+  def followers
+    QuestionFollow.followers_for_question_id(self.id)
+  end
+
 end
 
 class User 
@@ -110,6 +119,10 @@ class User
   def authored_replies
     Reply.find_by_user_id(self.id)
   end
+
+  def followed_questions
+    QuestionFollow.followers_for_user_id(self.id)
+  end
 end
 
 class QuestionFollow 
@@ -127,6 +140,74 @@ class QuestionFollow
     return nil if question_follow.length == 0
 
     QuestionFollow.new(question_follow.first)
+  end
+
+  def self.followers_for_question_id(question_id)
+    question_follow = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        users.id, users.fname, users.lname
+      FROM
+        question_follows
+      JOIN
+        users on question_follows.user_id = users.id
+      JOIN
+        questions on question_follows.question_id = questions.id
+      WHERE
+        questions.id = ?
+    SQL
+    return nil if question_follow.length == 0
+
+    users = []
+    question_follow.each do |user|
+      users << User.new(user)
+    end
+    users
+  end
+
+  def self.followers_for_user_id(user_id)
+    question_follow = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+      SELECT
+        questions.id, questions.title, questions.body, questions.author_id
+      FROM
+        question_follows
+      JOIN
+        users on question_follows.user_id = users.id
+      JOIN
+        questions on question_follows.question_id = questions.id
+      WHERE
+        users.id = ?
+    SQL
+    return nil if question_follow.length == 0
+
+    questions = []
+    question_follow.each do |question|
+      questions << Question.new(question)
+    end
+    questions
+  end 
+
+  def self.most_followed_questions(n)
+    question_follow = QuestionsDatabase.instance.execute(<<-SQL, n)
+        SELECT
+          questions.id, COUNT(*) AS numbers_followers
+        FROM
+          question_follows
+        JOIN
+          users on question_follows.user_id = users.id
+        JOIN
+          questions on question_follows.question_id = questions.id
+        GROUP BY
+          questions.id
+        ORDER BY
+          numbers_followers DESC
+        LIMIT ?        
+    SQL
+    return nil if question_follow.length == 0
+    questions = []
+    question_follow.each do |question|
+      questions << Question.find_by_id(question['id'])
+    end
+    questions
   end
 
   def initialize(options)
@@ -225,7 +306,7 @@ class Reply
       replies << Reply.new(ele)
     end
     replies 
-    
+
   end
 
 
@@ -246,6 +327,29 @@ class QuestionLike
     return nil if question_like.length == 0
 
     QuestionLike.new(question_like.first)
+  end
+
+  def self.likers_for_question_id(question_id)
+    question_like = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        users.id, users.fname, users.lname
+      FROM
+        question_likes
+      JOIN
+        users on question_likes.user_like_id = users.id
+      JOIN
+        questions on question_likes.question_like_id = questions.id
+      WHERE
+        questions.id = ?
+    SQL
+    return nil if question_like.length == 0
+
+    users = []
+    question_like.each do |user|
+      users << User.new(user)
+    end
+    users
+
   end
 
 

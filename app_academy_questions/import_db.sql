@@ -70,11 +70,28 @@ VALUES
   ('Kush Question', 'KUSH KUSH K' , (SELECT id from users where fname = 'Kush')),
   ('Earl Question', 'MEOW MEOW M' , (SELECT id from users where fname = 'Earl')); 
 
-  INSERT INTO
-    replies (subject_question_id, parent_reply_id, user_id, body)
-  VALUES
-    (1, NULL, 1, "TEST 1 ---USER1"),
-    (1, 1, 2, "TEST 1  ---USER2"),
-    (2, NULL, 3, "TEST 2  ---USER3"),
-    (2, 3, 2, "TEST 2  ---USER2")
-    ;
+INSERT INTO
+  replies (subject_question_id, parent_reply_id, user_id, body)
+VALUES
+  (1, NULL, 1, "TEST 1 ---USER1"),
+  (1, 1, 2, "TEST 1  ---USER2"),
+  (2, NULL, 3, "TEST 2  ---USER3"),
+  (2, 3, 2, "TEST 2  ---USER2");
+
+INSERT INTO 
+  question_follows(id, user_id, question_id)
+VALUES 
+  (1,1,1),
+  (2,2,1),
+  (3,2,2),
+  (4,1,2),
+  (5,3,2),
+  (6,2,3);
+
+INSERT INTO 
+  question_likes(id, user_like_id, question_like_id)
+VALUES 
+  (1,1,1),
+  (2,2,1),
+  (3,2,2),
+  (4,3,2);
