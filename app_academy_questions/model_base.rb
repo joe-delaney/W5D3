@@ -1,5 +1,6 @@
 require 'sqlite3'
 require 'singleton'
+require 'active_support/inflector'
 
 class QuestionsDatabase < SQLite3::Database
   include Singleton
@@ -13,20 +14,22 @@ end
 
 class ModelBase
 
-
   def self.find_by_id(id)
-    question = QuestionsDatabase.instance.execute(<<-SQL, id)
+    result = QuestionsDatabase.instance.execute(<<-SQL, id)
       SELECT
         *
       FROM
-        questions 
+        #{get_table}
       WHERE
         id = ?
     SQL
-    return nil if question.length == 0
+    return nil if result.length == 0
 
-    Question.new(question.first)
+    self.new(result.first)
   end
 
+  def self.get_table
+    self.name.tableize
+  end
 
 end

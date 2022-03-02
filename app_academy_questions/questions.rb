@@ -1,6 +1,6 @@
 require_relative 'model_base'
 
-class Question 
+class Question < ModelBase
   attr_accessor :title, :body, :author_id, :id 
 
   def self.all_questions
@@ -100,7 +100,7 @@ class Question
 
 end
 
-class User 
+class User < ModelBase
   attr_accessor :fname, :lname, :id 
 
   def self.all_users
@@ -116,20 +116,6 @@ class User
       users << User.new(ele)
     end
     users
-  end
-
-  def self.find_by_id(id)
-    user = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        users 
-      WHERE
-        id = ?
-    SQL
-    return nil if user.length == 0
-
-    User.new(user.first)
   end
 
   def self.find_by_name(fname, lname)
@@ -216,22 +202,8 @@ class User
   end
 end
 
-class QuestionFollow 
+class QuestionFollow < ModelBase
   attr_accessor :id, :user_id, :question_id 
-
-  def self.find_by_id(id)
-    question_follow = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        question_follows 
-      WHERE
-        id = ?
-    SQL
-    return nil if question_follow.length == 0
-
-    QuestionFollow.new(question_follow.first)
-  end
 
   def self.followers_for_question_id(question_id)
     question_follow = QuestionsDatabase.instance.execute(<<-SQL, question_id)
@@ -308,7 +280,7 @@ class QuestionFollow
   end
 end
 
-class Reply 
+class Reply < ModelBase
   attr_accessor :id, :subject_question_id, :parent_reply_id, :user_id, :body 
 
   def self.all_replies
@@ -324,20 +296,6 @@ class Reply
       replies << Reply.new(ele)
     end
     replies
-  end
-
-  def self.find_by_id(id)
-    reply = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        replies 
-      WHERE
-        id = ?
-    SQL
-    return nil if reply.length == 0
-
-    Reply.new(reply.first)
   end
 
   def self.find_by_user_id(user_id)
@@ -444,22 +402,8 @@ class Reply
   end
 end
 
-class QuestionLike
+class QuestionLike < ModelBase
   attr_accessor :id, :user_like_id, :question_like_id 
-
-  def self.find_by_id(id)
-    question_like= QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        question_likes
-      WHERE
-        id = ?
-    SQL
-    return nil if question_like.length == 0
-
-    QuestionLike.new(question_like.first)
-  end
 
   def self.likers_for_question_id(question_id)
     question_like = QuestionsDatabase.instance.execute(<<-SQL, question_id)
