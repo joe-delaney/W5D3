@@ -14,6 +14,21 @@ end
 class Question 
   attr_accessor :title, :body, :author_id, :id 
 
+  def self.all_questions
+    question = QuestionsDatabase.instance.execute(<<-SQL)
+      SELECT
+        *
+      FROM
+        questions 
+    SQL
+    return nil if question.length == 0
+    questions = []
+    question.each do |ele|
+      questions << Question.new(ele)
+    end
+    questions
+  end
+
   def self.find_by_id(id)
     question = QuestionsDatabase.instance.execute(<<-SQL, id)
       SELECT
@@ -80,10 +95,53 @@ class Question
   def most_liked(n)
     QuestionLike.most_liked_questions(n)
   end
+
+  def save
+    self.id ? self.update : self.insert
+  end
+
+  def insert
+    QuestionsDatabase.instance.execute(<<-SQL, self.title, self.body, self.author_id)
+      INSERT INTO
+        questions (title, body, author_id)
+      VALUES
+        (?, ?, ?)      
+    SQL
+    self.id = QuestionsDatabase.instance.last_insert_row_id
+  end
+
+  def update
+    QuestionsDatabase.instance.execute(<<-SQL, self.title, self.body, self.author_id, self.id)
+      UPDATE
+        questions
+      SET
+        title = ?,
+        body = ?,
+        author_id = ?
+      WHERE
+        id = ?
+    SQL
+  end
+
 end
 
 class User 
   attr_accessor :fname, :lname, :id 
+
+  def self.all_users
+    user = QuestionsDatabase.instance.execute(<<-SQL)
+      SELECT
+        *
+      FROM
+        users 
+    SQL
+    return nil if user.length == 0
+    users = []
+    user.each do |ele|
+      users << User.new(ele)
+    end
+    users
+  end
 
   def self.find_by_id(id)
     user = QuestionsDatabase.instance.execute(<<-SQL, id)
@@ -156,6 +214,31 @@ class User
     average_karma.first['avg_karma']
   end
 
+  def save
+    self.id ? self.update : self.insert
+  end
+
+  def insert
+    QuestionsDatabase.instance.execute(<<-SQL, self.fname, self.lname)
+      INSERT INTO
+        users (fname, lname)
+      VALUES
+        (?, ?)      
+    SQL
+    self.id = QuestionsDatabase.instance.last_insert_row_id
+  end
+
+  def update
+    QuestionsDatabase.instance.execute(<<-SQL, self.fname, self.lname, self.id)
+      UPDATE
+        users
+      SET
+        fname = ?,
+        lname = ?
+      WHERE
+        id = ?
+    SQL
+  end
 end
 
 class QuestionFollow 
@@ -253,6 +336,21 @@ end
 class Reply 
   attr_accessor :id, :subject_question_id, :parent_reply_id, :user_id, :body 
 
+  def self.all_replies
+    reply = QuestionsDatabase.instance.execute(<<-SQL)
+      SELECT
+        *
+      FROM
+        replies 
+    SQL
+    return nil if reply.length == 0
+    replies = []
+    reply.each do |ele|
+      replies << Reply.new(ele)
+    end
+    replies
+  end
+
   def self.find_by_id(id)
     reply = QuestionsDatabase.instance.execute(<<-SQL, id)
       SELECT
@@ -340,6 +438,34 @@ class Reply
     end
     replies 
 
+  end
+
+  def save
+    self.id ? self.update : self.insert
+  end
+
+  def insert
+    QuestionsDatabase.instance.execute(<<-SQL, self.subject_question_id, self.parent_reply_id, self.user_id, self.body)
+      INSERT INTO
+        replies (subject_question_id, parent_reply_id, user_id, body)
+      VALUES
+        (?, ?, ?, ?)      
+    SQL
+    self.id = QuestionsDatabase.instance.last_insert_row_id
+  end
+
+  def update
+    QuestionsDatabase.instance.execute(<<-SQL, self.subject_question_id, self.parent_reply_id, self.user_id, self.body, self.id)
+      UPDATE
+        replies
+      SET
+        subject_question_id = ?,
+        parent_reply_id = ?,
+        user_id = ?,
+        body = ?
+      WHERE
+        id = ?
+    SQL
   end
 end
 
